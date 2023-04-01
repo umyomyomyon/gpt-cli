@@ -28,6 +28,7 @@ pub async fn request_chatgpt(
 }
 
 pub struct Messages {
+    system_text: String,
     pub messages: Vec<ChatCompletionRequestMessage>,
 }
 
@@ -35,6 +36,7 @@ impl Messages {
     pub fn new(system_text: Option<&String>) -> Self {
         match system_text {
             Some(text) => Self {
+                system_text: text.to_string(),
                 messages: vec![
                     ChatCompletionRequestMessageArgs::default()
                         .role(Role::System)
@@ -44,6 +46,7 @@ impl Messages {
                 ],
             },
             None => Self {
+                system_text: "You are a helpful assistant.".to_string(),
                 messages: vec![
                     ChatCompletionRequestMessageArgs::default()
                         .role(Role::System)
@@ -54,7 +57,9 @@ impl Messages {
             },
         }
     }
+}
 
+impl Messages {
     fn push(&mut self, role: Role, content: &String) {
         self.messages.push(
             ChatCompletionRequestMessageArgs::default()
@@ -71,5 +76,27 @@ impl Messages {
 
     pub fn push_as_assistant(&mut self, content: &String) {
         self.push(Role::System, content);
+    }
+}
+
+impl Messages {
+    pub fn clear(&mut self) {
+        self.messages = vec![
+            ChatCompletionRequestMessageArgs::default()
+                .role(Role::System)
+                .content(&self.system_text)
+                .build()
+                .unwrap(),
+        ];
+    }
+}
+
+impl Messages {
+    pub fn history(&self) -> String {
+        let mut history = String::new();
+        for message in &self.messages {
+            history.push_str(&format!("{}: {}\n", message.role, message.content));
+        }
+        return history;
     }
 }

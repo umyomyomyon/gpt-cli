@@ -9,6 +9,16 @@ use async_openai::{
     Client,
 };
 
+pub fn check_apikey() {
+    match std::env::var("OPENAI_API_KEY") {
+        Ok(_) => (),
+        Err(_) => {
+            println!("Please set OPENAI_API_KEY env var: export OPENAI_API_KEY=YOUR_API_KEY");
+            std::process::exit(1);
+        },
+    }
+}
+
 pub struct Chat {
     system_text: String,
     pub messages: Vec<ChatCompletionRequestMessage>,

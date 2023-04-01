@@ -8,6 +8,7 @@ use cli::Cli;
 use chat::Chat;
 
 fn main() {
+    chat::check_apikey();
     let args = Cli::parse();
     let mut chat = Chat::new(None);
     let rt = runtime::Builder::new_current_thread()

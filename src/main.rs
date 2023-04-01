@@ -14,6 +14,13 @@ async fn main() {
         if input == "exit" {
             cli::exit_message();
             break;
+        } else if input == "clear" {
+            messages.clear();
+            continue;
+        } else if input == "history" {
+            let history = messages.history();
+            println!("{}", history);
+            continue;
         }
         messages.push_as_user(&input);
         let result =

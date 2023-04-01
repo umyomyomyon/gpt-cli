@@ -31,3 +31,13 @@ pub fn exit_message() {
 pub fn please_input() {
     println!("Please input something.");
 }
+
+pub fn check_apikey() {
+    match std::env::var("OPENAI_API_KEY") {
+        Ok(_) => (),
+        Err(_) => {
+            println!("Please set OPENAI_API_KEY env var: export OPENAI_API_KEY=YOUR_API_KEY");
+            std::process::exit(1);
+        },
+    }
+}

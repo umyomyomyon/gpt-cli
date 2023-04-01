@@ -1,10 +1,13 @@
 mod cli;
 mod api;
 
+use clap::Parser;
+use cli::Cli;
 use api::Messages;
 
 #[tokio::main]
 async fn main() {
+    let args = Cli::parse();
     let mut messages = Messages::new(None);
     loop {
         let input = cli::prompt();
@@ -13,7 +16,8 @@ async fn main() {
             break;
         }
         messages.push_as_user(&input);
-        let result = api::request_chatgpt(messages.messages.clone()).await.unwrap();
+        let result =
+            api::request_chatgpt(messages.messages.clone(), args.model.clone()).await.unwrap();
         messages.push_as_assistant(&result.choices[0].message.content);
         println!("{}", result.choices[0].message.content);
     }

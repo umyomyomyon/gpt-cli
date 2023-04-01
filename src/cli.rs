@@ -1,4 +1,11 @@
 use std::io::Write;
+use clap::Parser;
+
+#[derive(Parser)]
+pub struct Cli {
+    #[clap(short, long)]
+    pub model: Option<String>
+}
 
 pub fn prompt() -> String {
     print_head();

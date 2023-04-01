@@ -27,3 +27,7 @@ fn read_input() -> String {
 pub fn exit_message() {
     println!("Goodbye!");
 }
+
+pub fn please_input() {
+    println!("Please input something.");
+}

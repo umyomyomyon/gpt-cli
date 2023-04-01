@@ -11,20 +11,30 @@ async fn main() {
     let mut chat = Chat::new(None);
     loop {
         let input = cli::prompt();
-        if input == "exit" {
-            cli::exit_message();
-            break;
-        } else if input == "clear" {
-            chat.clear();
-            continue;
-        } else if input == "history" {
-            let history = chat.history();
-            println!("{}", history);
-            continue;
+        match input.as_str() {
+            "exit" => {
+                cli::exit_message();
+                break;
+            },
+            "clear" => {
+                chat.clear();
+                continue;
+            },
+            "history" => {
+                let history = chat.history();
+                println!("{}", history);
+                continue;
+            },
+            "" => {
+                cli::please_input();
+                continue;
+            },
+            _ => {
+                chat.push_as_user(&input);
+                let result =
+                    chat.request_chatgpt(args.model.clone()).await.unwrap();
+                println!("{}", result.choices[0].message.content);
+            },
         }
-        chat.push_as_user(&input);
-        let result =
-            chat.request_chatgpt(args.model.clone()).await.unwrap();
-        println!("{}", result.choices[0].message.content);
     }
 }

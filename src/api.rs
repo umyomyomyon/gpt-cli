@@ -9,27 +9,59 @@ use async_openai::{
     Client,
 };
 
-pub async fn request_chatgpt(input: &String) -> Result<CreateChatCompletionResponse , Box<dyn std::error::Error>> {
-    let messages = make_messages(&input);
+pub async fn request_chatgpt(messages: Vec<ChatCompletionRequestMessage>) -> Result<CreateChatCompletionResponse , Box<dyn std::error::Error>> {
     let client = Client::new();
     let request = CreateChatCompletionRequestArgs::default()
-        .max_tokens(521u16)
         .model("gpt-3.5-turbo")
-        .messages(messages.unwrap())
+        .messages(messages)
         .build()?;
     let response = client.chat().create(request).await?;
     Ok::<CreateChatCompletionResponse, Box<dyn std::error::Error>>(response)
 }
 
-fn make_messages(input: &String) -> Result<Vec<ChatCompletionRequestMessage>, Box<dyn std::error::Error>>{
-    Ok(vec![
-        ChatCompletionRequestMessageArgs::default()
-            .role(Role::System)
-            .content("You are a helpful assistant.")
-            .build()?,
-        ChatCompletionRequestMessageArgs::default()
-            .role(Role::User)
-            .content(input)
-            .build()?,
-    ])
+pub struct Messages {
+    pub messages: Vec<ChatCompletionRequestMessage>,
+}
+
+impl Messages {
+    pub fn new(system_text: Option<&String>) -> Self {
+        match system_text {
+            Some(text) => Self {
+                messages: vec![
+                    ChatCompletionRequestMessageArgs::default()
+                        .role(Role::System)
+                        .content(text)
+                        .build()
+                        .unwrap(),
+                ],
+            },
+            None => Self {
+                messages: vec![
+                    ChatCompletionRequestMessageArgs::default()
+                        .role(Role::System)
+                        .content("You are a helpful assistant.")
+                        .build()
+                        .unwrap(),
+                ],
+            },
+        }
+    }
+
+    fn push(&mut self, role: Role, content: &String) {
+        self.messages.push(
+            ChatCompletionRequestMessageArgs::default()
+                .role(role)
+                .content(content)
+                .build()
+                .unwrap(),
+        );
+    }
+
+    pub fn push_as_user(&mut self, content: &String) {
+        self.push(Role::User, content);
+    }
+
+    pub fn push_as_assistant(&mut self, content: &String) {
+        self.push(Role::System, content);
+    }
 }

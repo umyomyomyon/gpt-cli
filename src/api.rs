@@ -9,10 +9,18 @@ use async_openai::{
     Client,
 };
 
-pub async fn request_chatgpt(messages: Vec<ChatCompletionRequestMessage>) -> Result<CreateChatCompletionResponse , Box<dyn std::error::Error>> {
+pub async fn request_chatgpt(
+    messages: Vec<ChatCompletionRequestMessage>,
+    model: Option<String>
+) -> Result<CreateChatCompletionResponse , Box<dyn std::error::Error>> {
+    let model = if model.is_some() {
+        model.unwrap()
+    } else {
+        "gpt-3.5-turbo".to_string()
+    };
     let client = Client::new();
     let request = CreateChatCompletionRequestArgs::default()
-        .model("gpt-3.5-turbo")
+        .model(model)
         .messages(messages)
         .build()?;
     let response = client.chat().create(request).await?;

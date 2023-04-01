@@ -9,30 +9,12 @@ use async_openai::{
     Client,
 };
 
-pub async fn request_chatgpt(
-    messages: Vec<ChatCompletionRequestMessage>,
-    model: Option<String>
-) -> Result<CreateChatCompletionResponse , Box<dyn std::error::Error>> {
-    let model = if model.is_some() {
-        model.unwrap()
-    } else {
-        "gpt-3.5-turbo".to_string()
-    };
-    let client = Client::new();
-    let request = CreateChatCompletionRequestArgs::default()
-        .model(model)
-        .messages(messages)
-        .build()?;
-    let response = client.chat().create(request).await?;
-    Ok::<CreateChatCompletionResponse, Box<dyn std::error::Error>>(response)
-}
-
-pub struct Messages {
+pub struct Chat {
     system_text: String,
     pub messages: Vec<ChatCompletionRequestMessage>,
 }
 
-impl Messages {
+impl Chat {
     pub fn new(system_text: Option<&String>) -> Self {
         match system_text {
             Some(text) => Self {
@@ -59,7 +41,7 @@ impl Messages {
     }
 }
 
-impl Messages {
+impl Chat {
     fn push(&mut self, role: Role, content: &String) {
         self.messages.push(
             ChatCompletionRequestMessageArgs::default()
@@ -74,12 +56,12 @@ impl Messages {
         self.push(Role::User, content);
     }
 
-    pub fn push_as_assistant(&mut self, content: &String) {
-        self.push(Role::System, content);
+    fn push_as_assistant(&mut self, content: &String) {
+        self.push(Role::Assistant, content);
     }
 }
 
-impl Messages {
+impl Chat {
     pub fn clear(&mut self) {
         self.messages = vec![
             ChatCompletionRequestMessageArgs::default()
@@ -91,12 +73,33 @@ impl Messages {
     }
 }
 
-impl Messages {
+impl Chat {
     pub fn history(&self) -> String {
         let mut history = String::new();
         for message in &self.messages {
             history.push_str(&format!("{}: {}\n", message.role, message.content));
         }
         return history;
+    }
+}
+
+impl Chat {
+    pub async fn request_chatgpt(&mut self, model: Option<String>) -> Result<CreateChatCompletionResponse, Box<dyn std::error::Error>> {
+        let client = Client::new();
+        let request = CreateChatCompletionRequestArgs::default()
+            .model(self.choose_model(model))
+            .messages(self.messages.clone())
+            .build()?;
+        let response = client.chat().create(request).await?;
+        self.push_as_assistant(&response.choices[0].message.content);
+        Ok::<CreateChatCompletionResponse, Box<dyn std::error::Error>>(response)
+    }
+
+    fn choose_model(&self, model: Option<String>) -> String {
+        if model.is_some() {
+            model.unwrap()
+        } else {
+            "gpt-3.5-turbo".to_string()
+        }
     }
 }

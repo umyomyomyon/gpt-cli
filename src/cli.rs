@@ -16,3 +16,7 @@ fn read_input() -> String {
     std::io::stdin().read_line(&mut line).expect("Failed to read line");
     return line.trim().to_string();
 }
+
+pub fn exit_message() {
+    println!("Goodbye!");
+}
